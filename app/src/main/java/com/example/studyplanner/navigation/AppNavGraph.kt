@@ -12,6 +12,7 @@ import com.example.studyplanner.data.TaskRepositoryRoom
 import com.example.studyplanner.screens.AddTaskScreen
 import com.example.studyplanner.screens.DashboardScreen
 import com.example.studyplanner.screens.LoginScreen
+import com.example.studyplanner.screens.ProgressScreen
 import com.example.studyplanner.screens.SignupScreen
 import com.example.studyplanner.screens.SplashScreen
 import com.example.studyplanner.viewmodel.TaskViewModel
@@ -76,6 +77,9 @@ fun AppNavGraph(
                 onAddTaskClick = {
                     navController.navigate(Screen.AddTask.route)
                 },
+                onProgressClick = {
+                    navController.navigate(Screen.Progress.route)
+                },
                 onLogoutClick = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0)
@@ -90,6 +94,15 @@ fun AppNavGraph(
                 onTaskSaved = {
                     navController.popBackStack()
                 },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Screen.Progress.route) {
+            ProgressScreen(
+                taskViewModel = taskViewModel,
                 onBackClick = {
                     navController.popBackStack()
                 }

@@ -1,5 +1,11 @@
 package com.example.studyplanner.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,10 +30,15 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.example.studyplanner.model.StudyTask
+import com.example.studyplanner.network.StudyTipRepository
+import com.example.studyplanner.notifications.ReminderScheduler
 import com.example.studyplanner.viewmodel.TaskViewModel
 import com.google.firebase.auth.FirebaseAuth
 
@@ -36,10 +47,27 @@ import com.google.firebase.auth.FirebaseAuth
 fun DashboardScreen(
     taskViewModel: TaskViewModel,
     onAddTaskClick: () -> Unit,
+    onProgressClick: () -> Unit,
     onLogoutClick: () -> Unit
 ) {
+    val context = LocalContext.current
     val tasks by taskViewModel.tasks.collectAsState()
     val currentUser = FirebaseAuth.getInstance().currentUser
+
+    val studyTip by produceState(initialValue = "Loading study tip...") {
+        value = StudyTipRepository.getRandomTip()
+    }
+
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            ReminderScheduler.scheduleTestReminder(context)
+            Toast.makeText(context, "Reminder scheduled", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, "Notification permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -68,11 +96,68 @@ fun DashboardScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "Study Tip",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = studyTip,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Button(
                 onClick = onAddTaskClick,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Add Study Task")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = onProgressClick,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("View Study Progress")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        val permissionGranted = ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.POST_NOTIFICATIONS
+                        ) == PackageManager.PERMISSION_GRANTED
+
+                        if (permissionGranted) {
+                            ReminderScheduler.scheduleTestReminder(context)
+                            Toast.makeText(context, "Reminder scheduled", Toast.LENGTH_SHORT).show()
+                        } else {
+                            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        }
+                    } else {
+                        ReminderScheduler.scheduleTestReminder(context)
+                        Toast.makeText(context, "Reminder scheduled", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Schedule Test Reminder")
             }
 
             Spacer(modifier = Modifier.height(12.dp))
