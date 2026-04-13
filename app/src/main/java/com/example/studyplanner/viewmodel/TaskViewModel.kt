@@ -38,6 +38,12 @@ class TaskViewModel(
             )
         }
     }
+
+    fun deleteCompletedTasks() {
+        viewModelScope.launch {
+            repository.deleteCompletedTasks()
+        }
+    }
 }
 
 class TaskViewModelFactory(

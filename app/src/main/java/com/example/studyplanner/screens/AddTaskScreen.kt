@@ -94,11 +94,23 @@ fun AddTaskScreen(
 
         Button(
             onClick = {
-                if (title.isBlank() || description.isBlank()) {
-                    errorMessage = "Please enter both title and description"
-                } else {
-                    taskViewModel.addTask(title, description)
-                    onTaskSaved()
+                when {
+                    title.isBlank() || description.isBlank() -> {
+                        errorMessage = "Please enter both title and description"
+                    }
+
+                    title.trim().length < 3 -> {
+                        errorMessage = "Task title should be at least 3 characters"
+                    }
+
+                    description.trim().length < 5 -> {
+                        errorMessage = "Task description should be at least 5 characters"
+                    }
+
+                    else -> {
+                        taskViewModel.addTask(title, description)
+                        onTaskSaved()
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth()

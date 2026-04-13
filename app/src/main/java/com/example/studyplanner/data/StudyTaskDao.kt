@@ -18,4 +18,7 @@ interface StudyTaskDao {
 
     @Query("SELECT * FROM study_tasks ORDER BY id DESC")
     fun getAllTasks(): Flow<List<StudyTask>>
+
+    @Query("DELETE FROM study_tasks WHERE isCompleted = 1")
+    suspend fun deleteCompletedTasks()
 }

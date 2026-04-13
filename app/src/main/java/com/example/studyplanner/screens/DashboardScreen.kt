@@ -54,6 +54,10 @@ fun DashboardScreen(
     val tasks by taskViewModel.tasks.collectAsState()
     val currentUser = FirebaseAuth.getInstance().currentUser
 
+    val totalTasks = tasks.size
+    val completedTasks = tasks.count { it.isCompleted }
+    val pendingTasks = totalTasks - completedTasks
+
     val studyTip by produceState(initialValue = "Loading study tip...") {
         value = StudyTipRepository.getRandomTip()
     }
@@ -93,6 +97,27 @@ fun DashboardScreen(
                 text = currentUser?.email ?: "Student user",
                 style = MaterialTheme.typography.bodyMedium
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "Task Summary",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(text = "Total Tasks: $totalTasks")
+                    Text(text = "Completed Tasks: $completedTasks")
+                    Text(text = "Pending Tasks: $pendingTasks")
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -158,6 +183,17 @@ fun DashboardScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Schedule Test Reminder")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedButton(
+                onClick = {
+                    taskViewModel.deleteCompletedTasks()
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Delete Completed Tasks")
             }
 
             Spacer(modifier = Modifier.height(12.dp))

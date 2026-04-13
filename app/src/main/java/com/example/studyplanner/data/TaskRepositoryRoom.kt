@@ -18,4 +18,8 @@ class TaskRepositoryRoom(
     suspend fun updateTask(task: StudyTask) {
         dao.updateTask(task)
     }
+
+    suspend fun deleteCompletedTasks() {
+        dao.deleteCompletedTasks()
+    }
 }

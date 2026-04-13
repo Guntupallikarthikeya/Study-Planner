@@ -39,6 +39,13 @@ fun ProgressScreen(
         0f
     }
 
+    val progressMessage = when {
+        totalTasks == 0 -> "No tasks added yet. Start by creating a study task."
+        progressValue == 1f -> "Excellent progress. All tasks are completed."
+        progressValue >= 0.5f -> "Good progress. Keep working on the remaining tasks."
+        else -> "Progress has started. Continue completing tasks regularly."
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -96,6 +103,28 @@ fun ProgressScreen(
 
                     Text(
                         text = "Completion Rate: ${(progressValue * 100).toInt()}%",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "Progress Message",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = progressMessage,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

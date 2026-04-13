@@ -10,15 +10,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
-    onSplashFinished: () -> Unit
+    onNavigateToLogin: () -> Unit,
+    onNavigateToDashboard: () -> Unit
 ) {
     LaunchedEffect(Unit) {
         delay(2000)
-        onSplashFinished()
+
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            onNavigateToDashboard()
+        } else {
+            onNavigateToLogin()
+        }
     }
 
     Column(
@@ -32,7 +40,7 @@ fun SplashScreen(
         )
 
         Text(
-            text = "Plan your learning, one task at a time",
+            text = "Plan study tasks in a simple way",
             style = MaterialTheme.typography.bodyMedium
         )
 
