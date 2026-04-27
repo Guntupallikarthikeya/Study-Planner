@@ -7,4 +7,5 @@ sealed class Screen(val route: String) {
     data object Dashboard : Screen("dashboard")
     data object AddTask : Screen("add_task")
     data object Progress : Screen("progress")
+    data object Profile : Screen("profile")
 }

@@ -2,34 +2,22 @@ package com.example.studyplanner.screens
 
 import android.util.Patterns
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
+import com.example.studyplanner.components.*
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun LoginScreen(
+    isDarkMode: Boolean,
     onLoginSuccess: () -> Unit,
     onSignupClick: () -> Unit
 ) {
@@ -40,120 +28,142 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
+    var visible by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center
+    LaunchedEffect(Unit) {
+        visible = true
+    }
+
+    GradientScreen(
+        isDarkMode = isDarkMode,
+        modifier = Modifier.fillMaxSize()
     ) {
-        Text(
-            text = "Login",
-            style = MaterialTheme.typography.headlineMedium
-        )
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn(tween(700)) + slideInVertically(tween(700), initialOffsetY = { it / 3 })
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(26.dp),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Welcome Back",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = appText(isDarkMode)
+                )
 
-        Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            text = "Sign in to continue to your study planner",
-            style = MaterialTheme.typography.bodyMedium
-        )
+                Text(
+                    text = "Login to continue your study journey",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = appMuted(isDarkMode)
+                )
 
-        Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(28.dp))
 
-        OutlinedTextField(
-            value = email,
-            onValueChange = {
-                email = it
-                errorMessage = ""
-            },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next
-            )
-        )
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = {
+                        email = it
+                        errorMessage = ""
+                    },
+                    label = { Text("Email") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = appText(isDarkMode),
+                        unfocusedTextColor = appText(isDarkMode),
+                        focusedLabelColor = AccentBlue,
+                        unfocusedLabelColor = appMuted(isDarkMode),
+                        focusedBorderColor = AccentBlue,
+                        unfocusedBorderColor = appMuted(isDarkMode)
+                    ),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Next
+                    )
+                )
 
-        Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-        OutlinedTextField(
-            value = password,
-            onValueChange = {
-                password = it
-                errorMessage = ""
-            },
-            label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done
-            )
-        )
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = {
+                        password = it
+                        errorMessage = ""
+                    },
+                    label = { Text("Password") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = appText(isDarkMode),
+                        unfocusedTextColor = appText(isDarkMode),
+                        focusedLabelColor = AccentBlue,
+                        unfocusedLabelColor = appMuted(isDarkMode),
+                        focusedBorderColor = AccentBlue,
+                        unfocusedBorderColor = appMuted(isDarkMode)
+                    ),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done
+                    )
+                )
 
-        Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-        if (errorMessage.isNotEmpty()) {
-            Text(
-                text = errorMessage,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Button(
-            onClick = {
-                when {
-                    email.isBlank() || password.isBlank() -> {
-                        errorMessage = "Please enter both email and password"
-                    }
-
-                    !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
-                        errorMessage = "Please enter a valid email address"
-                    }
-
-                    password.length < 6 -> {
-                        errorMessage = "Password must be at least 6 characters"
-                    }
-
-                    else -> {
-                        isLoading = true
-                        auth.signInWithEmailAndPassword(email.trim(), password.trim())
-                            .addOnCompleteListener { task ->
-                                isLoading = false
-                                if (task.isSuccessful) {
-                                    Toast.makeText(
-                                        context,
-                                        "Login successful",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                    onLoginSuccess()
-                                } else {
-                                    errorMessage = task.exception?.localizedMessage
-                                        ?: "Login failed"
-                                }
-                            }
-                    }
+                if (errorMessage.isNotEmpty()) {
+                    Text(
+                        text = errorMessage,
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !isLoading
-        ) {
-            Text(if (isLoading) "Please wait..." else "Login")
-        }
 
-        Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(22.dp))
 
-        OutlinedButton(
-            onClick = onSignupClick,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Create New Account")
+                PrimaryAppButton(
+                    text = if (isLoading) "Please wait..." else "Login",
+                    onClick = {
+                        when {
+                            email.isBlank() || password.isBlank() -> {
+                                errorMessage = "Please enter both email and password"
+                            }
+
+                            !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                                errorMessage = "Please enter a valid email address"
+                            }
+
+                            password.length < 6 -> {
+                                errorMessage = "Password must be at least 6 characters"
+                            }
+
+                            else -> {
+                                isLoading = true
+                                auth.signInWithEmailAndPassword(email.trim(), password.trim())
+                                    .addOnCompleteListener { task ->
+                                        isLoading = false
+                                        if (task.isSuccessful) {
+                                            Toast.makeText(context, "Login successful", Toast.LENGTH_SHORT).show()
+                                            onLoginSuccess()
+                                        } else {
+                                            errorMessage = task.exception?.localizedMessage ?: "Login failed"
+                                        }
+                                    }
+                            }
+                        }
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                SecondaryAppButton(
+                    text = "Create New Account",
+                    onClick = onSignupClick
+                )
+            }
         }
     }
 }

@@ -1,31 +1,23 @@
 package com.example.studyplanner.screens
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.studyplanner.components.*
 import com.example.studyplanner.viewmodel.TaskViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProgressScreen(
     taskViewModel: TaskViewModel,
+    isDarkMode: Boolean,
     onBackClick: () -> Unit
 ) {
     val tasks by taskViewModel.tasks.collectAsState()
@@ -33,111 +25,88 @@ fun ProgressScreen(
     val totalTasks = tasks.size
     val completedTasks = tasks.count { it.isCompleted }
     val pendingTasks = totalTasks - completedTasks
-    val progressValue = if (totalTasks > 0) {
-        completedTasks.toFloat() / totalTasks.toFloat()
-    } else {
-        0f
-    }
+    val progressValue = if (totalTasks > 0) completedTasks.toFloat() / totalTasks else 0f
 
-    val progressMessage = when {
-        totalTasks == 0 -> "No tasks added yet. Start by creating a study task."
-        progressValue == 1f -> "Excellent progress. All tasks are completed."
-        progressValue >= 0.5f -> "Good progress. Keep working on the remaining tasks."
-        else -> "Progress has started. Continue completing tasks regularly."
-    }
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { visible = true }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Study Progress") }
-            )
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(20.dp),
-            verticalArrangement = Arrangement.Top
+    GradientScreen(isDarkMode = isDarkMode, modifier = Modifier.fillMaxSize()) {
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn(tween(700)) + slideInVertically(tween(700), initialOffsetY = { it / 3 })
         ) {
-            Text(
-                text = "Progress Overview",
-                style = MaterialTheme.typography.headlineSmall
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Card(
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(26.dp),
+                verticalArrangement = Arrangement.Center
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(
-                        text = "Total Tasks: $totalTasks",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                Text(
+                    text = "Study Progress",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = appText(isDarkMode)
+                )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                    Text(
-                        text = "Completed Tasks: $completedTasks",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                GlassCard(isDarkMode = isDarkMode, modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(22.dp)) {
+                        Text("Task Chart", color = appText(isDarkMode), style = MaterialTheme.typography.titleLarge)
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(18.dp))
 
-                    Text(
-                        text = "Pending Tasks: $pendingTasks",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                        PieChart(
+                            completed = completedTasks,
+                            pending = pendingTasks,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(180.dp)
+                        )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(14.dp))
 
-                    LinearProgressIndicator(
-                        progress = { progressValue },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "Completion Rate: ${(progressValue * 100).toInt()}%",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                        Text("Total Tasks: $totalTasks", color = appMuted(isDarkMode))
+                        Text("Completed Tasks: $completedTasks", color = appMuted(isDarkMode))
+                        Text("Pending Tasks: $pendingTasks", color = appMuted(isDarkMode))
+                        Text("Completion Rate: ${(progressValue * 100).toInt()}%", color = appText(isDarkMode))
+                    }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            Card(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(
-                        text = "Progress Message",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = progressMessage,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = onBackClick,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Back to Dashboard")
+                PrimaryAppButton(text = "Back to Dashboard", onClick = onBackClick)
             }
         }
+    }
+}
+
+@Composable
+fun PieChart(
+    completed: Int,
+    pending: Int,
+    modifier: Modifier = Modifier
+) {
+    val total = completed + pending
+
+    Canvas(modifier = modifier) {
+        val canvasSize = size.minDimension
+        val chartSize = Size(canvasSize, canvasSize)
+        val completedSweep = if (total > 0) (completed.toFloat() / total) * 360f else 0f
+
+        drawArc(
+            color = Color(0xFF7C9CFF),
+            startAngle = -90f,
+            sweepAngle = completedSweep,
+            useCenter = true,
+            size = chartSize
+        )
+
+        drawArc(
+            color = Color(0xFFFFD166),
+            startAngle = -90f + completedSweep,
+            sweepAngle = 360f - completedSweep,
+            useCenter = true,
+            size = chartSize
+        )
     }
 }

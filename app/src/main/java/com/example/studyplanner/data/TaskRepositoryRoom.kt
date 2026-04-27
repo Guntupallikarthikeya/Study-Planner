@@ -6,10 +6,7 @@ import kotlinx.coroutines.flow.Flow
 class TaskRepositoryRoom(
     private val dao: StudyTaskDao
 ) {
-
-    fun getAllTasks(): Flow<List<StudyTask>> {
-        return dao.getAllTasks()
-    }
+    fun getAllTasks(): Flow<List<StudyTask>> = dao.getAllTasks()
 
     suspend fun addTask(task: StudyTask) {
         dao.insertTask(task)
@@ -21,5 +18,9 @@ class TaskRepositoryRoom(
 
     suspend fun deleteCompletedTasks() {
         dao.deleteCompletedTasks()
+    }
+
+    suspend fun deleteTask(task: StudyTask) {
+        dao.deleteTaskById(task.id)
     }
 }

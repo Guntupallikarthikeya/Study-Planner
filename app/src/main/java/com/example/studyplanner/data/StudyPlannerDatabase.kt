@@ -6,7 +6,11 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.studyplanner.model.StudyTask
 
-@Database(entities = [StudyTask::class], version = 1, exportSchema = false)
+@Database(
+    entities = [StudyTask::class],
+    version = 2,
+    exportSchema = false
+)
 abstract class StudyPlannerDatabase : RoomDatabase() {
 
     abstract fun studyTaskDao(): StudyTaskDao
@@ -21,7 +25,9 @@ abstract class StudyPlannerDatabase : RoomDatabase() {
                     context.applicationContext,
                     StudyPlannerDatabase::class.java,
                     "study_planner_database"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration(false)
+                    .build()
 
                 INSTANCE = instance
                 instance

@@ -9,5 +9,6 @@ data class StudyTask(
     val id: Int = 0,
     val title: String,
     val description: String,
+    val deadlineMillis: Long? = null,
     val isCompleted: Boolean = false
 )
